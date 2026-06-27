@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>主日礼拜</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #05070a;
+    }
+
+    .worship-shell {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      isolation: isolate;
+      overflow: hidden;
+      background: #05070a;
+    }
+
+    .frame-slot {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(1.012);
+      transition:
+        opacity 760ms ease,
+        visibility 760ms ease,
+        transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .frame-slot.active {
+      z-index: 2;
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+    }
+
+    .frame-slot iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      pointer-events: none;
+      background: #05070a;
+    }
+
+    .click-zone {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 6;
+      width: 50%;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .click-zone.left { left: 0; }
+    .click-zone.right { right: 0; }
+
+    .shell-footer {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(16px, 2.8vh, 28px);
+      z-index: 8;
+      width: min(360px, calc(100vw - 56px));
+      transform: translateX(-50%);
+      color: rgba(255, 248, 231, 0.72);
+      pointer-events: none;
+    }
+
+    .status {
+      display: grid;
+      gap: 7px;
+      text-align: center;
+      font-size: 12px;
+      letter-spacing: 0.06em;
+    }
+
+    .progress {
+      height: 3px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .progress span {
+      display: block;
+      width: var(--progress, 0%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #9eced3, #edc475, #d78a70);
+    }
+
+    .section-chip {
+      position: absolute;
+      top: clamp(16px, 2.6vh, 28px);
+      right: clamp(20px, 3vw, 44px);
+      z-index: 8;
+      color: rgba(255, 248, 231, 0.45);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      pointer-events: none;
+    }
+
+    @media (max-width: 700px) {
+      .shell-footer {
+        width: min(300px, calc(100vw - 42px));
+      }
+
+      .section-chip {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="worship-shell">
+    <div class="frame-slot active" data-slot="0"><iframe title="礼拜内容"></iframe></div>
+    <div class="frame-slot" data-slot="1"><iframe title="礼拜内容"></iframe></div>
+
+    <button class="click-zone left" type="button" aria-label="上一页"></button>
+    <button class="click-zone right" type="button" aria-label="下一页"></button>
+
+    <div class="section-chip">主日礼拜 · <span id="section-chip">首页</span></div>
+    <div class="shell-footer">
+      <div class="status">
+        <div>
+          <span id="section-label">首页</span>
+          · <span id="local-page">01 / 01</span>
+          · 全程 <span id="global-page">01 / 24</span>
+        </div>
+        <div class="progress"><span id="progress-bar"></span></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="service.js"></script>
+  <script>
+    const service = window.WORSHIP_SERVICE;
+
+    const slots = Array.from(document.querySelectorAll(".frame-slot"));
+    const sectionLabel = document.getElementById("section-label");
+    const sectionChip = document.getElementById("section-chip");
+    const localPage = document.getElementById("local-page");
+    const globalPage = document.getElementById("global-page");
+    const progressBar = document.getElementById("progress-bar");
+    const totalPages = service.reduce((sum, section) => sum + section.pages, 0);
+    let activeSlot = 0;
+    let sectionIndex = 0;
+    let transitioning = false;
+    let pending = null;
+    let state = { current: 0, count: 1 };
+
+    function activeFrame() {
+      return slots[activeSlot].querySelector("iframe");
+    }
+
+    function updateStatus(message) {
+      if (!message) return;
+      state.current = Number(message.current) || 0;
+      state.count = Math.max(1, Number(message.count) || 1);
+      const label = message.sectionLabel || service[sectionIndex].label;
+      sectionLabel.textContent = label;
+      sectionChip.textContent = label;
+      localPage.textContent = `${String(state.current + 1).padStart(2, "0")} / ${String(state.count).padStart(2, "0")}`;
+      const completedPages = service
+        .slice(0, sectionIndex)
+        .reduce((sum, section) => sum + section.pages, 0);
+      const currentGlobalPage = completedPages + state.current + 1;
+      globalPage.textContent = `${String(currentGlobalPage).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`;
+      progressBar.style.setProperty("--progress", `${currentGlobalPage / totalPages * 100}%`);
+    }
+
+    function send(message) {
+      const frame = activeFrame();
+      if (frame.contentWindow) frame.contentWindow.postMessage(message, "*");
+    }
+
+    function navigate(delta) {
+      if (transitioning) return;
+      send({ type: "worship:navigate", delta });
+    }
+
+    function transitionSection(direction) {
+      const target = sectionIndex + direction;
+      if (transitioning || target < 0 || target >= service.length) return;
+
+      transitioning = true;
+      const nextSlot = activeSlot === 0 ? 1 : 0;
+      const nextFrame = slots[nextSlot].querySelector("iframe");
+      pending = { target, nextSlot, direction };
+      nextFrame.src = service[target].src;
+    }
+
+    function finishTransition(message) {
+      if (!pending) return;
+      const oldSlot = activeSlot;
+      sectionIndex = pending.target;
+      activeSlot = pending.nextSlot;
+      const position = pending.direction > 0 ? "first" : "last";
+      slots[activeSlot].querySelector("iframe").contentWindow.postMessage({ type: "worship:go", position }, "*");
+      slots[activeSlot].classList.add("active");
+      slots[oldSlot].classList.remove("active");
+      updateStatus({
+        sectionLabel: service[sectionIndex].label,
+        current: position === "last" ? Math.max(0, (message.count || 1) - 1) : 0,
+        count: message.count || 1
+      });
+      window.setTimeout(() => {
+        slots[oldSlot].querySelector("iframe").src = "about:blank";
+        transitioning = false;
+        pending = null;
+      }, 820);
+    }
+
+    window.addEventListener("message", (event) => {
+      const message = event.data || {};
+      if (!String(message.type || "").startsWith("worship:")) return;
+
+      if (message.type === "worship:ready") {
+        if (pending && event.source === slots[pending.nextSlot].querySelector("iframe").contentWindow) {
+          finishTransition(message);
+        } else if (event.source === activeFrame().contentWindow) {
+          updateStatus(message);
+        }
+      }
+
+      if (message.type === "worship:state" && event.source === activeFrame().contentWindow) {
+        updateStatus(message);
+      }
+
+      if (message.type === "worship:boundary" && event.source === activeFrame().contentWindow) {
+        transitionSection(Number(message.direction) || 1);
+      }
+    });
+
+    document.querySelector(".click-zone.left").addEventListener("click", () => navigate(-1));
+    document.querySelector(".click-zone.right").addEventListener("click", () => navigate(1));
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        navigate(1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        navigate(-1);
+      }
+    });
+
+    activeFrame().src = service[0].src;
+  </script>
+</body>
+</html>

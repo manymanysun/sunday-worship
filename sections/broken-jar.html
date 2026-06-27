@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/module.css">
+  <title>打碎玉瓶</title>
+</head>
+<body>
+  <div id="worship-module"></div>
+  <script src="../shared/module.js"></script>
+  <script>
+    const offering = [
+      "到主面前珍贵香膏，我向主献上",
+      "打碎玉瓶，膏抹耶稣，亲吻祂的脚"
+    ];
+    WorshipModule.mount({
+      title: "打碎玉瓶",
+      sectionLabel: "正式诗歌 1",
+      eyebrow: "正式诗歌 1",
+      theme: "alabaster",
+      visual: "jar",
+      accent: "#e5b278",
+      accentSoft: "rgba(229, 178, 120, 0.24)",
+      particle: "#efd0a0",
+      slides: [
+        {
+          title: "珍贵香膏，我向主献上",
+          lines: [...offering, "为我登上各各他山，每一个脚印", "里面充满无限爱意，刻在山岗上"]
+        },
+        {
+          title: "宝血代赎，印在我心中",
+          lines: [...offering, "为我背负十字木架，双足被钉死", "流出宝血代赎罪愆，印在我心中"]
+        },
+        {
+          title: "接我到天家",
+          lines: [...offering, "耶稣基督再次降临，这个世界上", "属神儿女祂必收纳，接我到天家"]
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

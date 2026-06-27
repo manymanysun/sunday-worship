@@ -1,0 +1,1543 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>你若不压橄榄成渣</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --paper: rgba(255, 248, 226, 0.92);
+      --muted: rgba(255, 248, 226, 0.68);
+      --line: rgba(255, 255, 255, 0.18);
+      --gold: #f6c65b;
+      --amber: #d18a2b;
+      --olive: #596f38;
+      --wine: #8f275a;
+      --rose: #d66a70;
+      --sky: #96c8d8;
+      --ink: #130f14;
+      --slide-x: 0%;
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", "Microsoft YaHei", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #07080b;
+    }
+
+    body {
+      color: var(--paper);
+      cursor: default;
+      user-select: none;
+    }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      isolation: isolate;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(246, 198, 91, 0.28), transparent 25vw),
+        radial-gradient(circle at 88% 14%, rgba(143, 39, 90, 0.26), transparent 28vw),
+        radial-gradient(circle at 48% 96%, rgba(84, 110, 71, 0.32), transparent 42vw),
+        linear-gradient(145deg, #05060a 0%, #11141b 48%, #17100f 100%);
+    }
+
+    .stage::before,
+    .stage::after {
+      content: "";
+      position: absolute;
+      inset: -15vmax;
+      z-index: -3;
+      pointer-events: none;
+    }
+
+    .stage::before {
+      background:
+        conic-gradient(from 70deg at 50% 50%, rgba(246, 198, 91, 0.12), rgba(143, 39, 90, 0.12), rgba(89, 111, 56, 0.14), rgba(150, 200, 216, 0.08), rgba(246, 198, 91, 0.12));
+      filter: blur(42px);
+      animation: turnMist 28s linear infinite;
+      opacity: 0.82;
+    }
+
+    .stage::after {
+      background:
+        repeating-linear-gradient(110deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 38px),
+        radial-gradient(circle at 50% 50%, transparent 0 35%, rgba(0, 0, 0, 0.62) 75%);
+      mix-blend-mode: screen;
+      opacity: 0.42;
+      transform: translate3d(var(--slide-x), 0, 0);
+      transition: transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    canvas#particles {
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slides {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: minmax(28px, 1fr) minmax(0, 1080px) minmax(28px, 1fr);
+      align-items: center;
+      padding: clamp(72px, 9vh, 112px) 0 clamp(76px, 10vh, 120px);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(7%, 0, 0) scale(0.985);
+      transition:
+        opacity 720ms ease,
+        visibility 720ms ease,
+        transform 900ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .slide::before,
+    .slide::after {
+      content: "";
+      position: absolute;
+      inset: -12%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 800ms ease;
+    }
+
+    .slide::before {
+      background:
+        repeating-linear-gradient(118deg, transparent 0 28px, rgba(255, 248, 226, 0.038) 29px 30px, transparent 31px 82px),
+        linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.035), transparent);
+      transform: translate3d(-3%, 0, 0) rotate(0.001deg);
+      animation: veilDrift 16s ease-in-out infinite alternate;
+    }
+
+    .slide::after {
+      background:
+        radial-gradient(ellipse at 18% 74%, rgba(246, 198, 91, 0.12), transparent 34%),
+        radial-gradient(ellipse at 84% 18%, rgba(150, 200, 216, 0.09), transparent 32%);
+      filter: blur(10px);
+      animation: slowBreath 9s ease-in-out infinite;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    .slide.active::before,
+    .slide.active::after {
+      opacity: 1;
+    }
+
+    .slide.prev {
+      transform: translate3d(-7%, 0, 0) scale(0.985);
+    }
+
+    .slide-inner {
+      grid-column: 2;
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1.03fr) minmax(300px, 0.74fr);
+      gap: clamp(30px, 6vw, 82px);
+      align-items: center;
+      min-height: min(680px, 78vh);
+    }
+
+    .slide.center .slide-inner {
+      grid-template-columns: minmax(0, 880px);
+      justify-content: center;
+      text-align: center;
+    }
+
+    .kicker {
+      display: inline-grid;
+      grid-auto-flow: column;
+      gap: 8px;
+      align-items: center;
+      width: fit-content;
+      margin-bottom: 14px;
+      color: rgba(255, 248, 226, 0.54);
+      font-family: "Microsoft YaHei", sans-serif;
+      font-size: clamp(10px, 0.95vw, 12px);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(246, 198, 91, 0.55));
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: 0;
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 900px;
+      font-size: clamp(42px, 8vw, 96px);
+      line-height: 1.08;
+      text-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    h2 {
+      position: relative;
+      z-index: 0;
+      width: fit-content;
+      max-width: 100%;
+      font-family: "Microsoft YaHei", "Noto Serif SC", sans-serif;
+      font-size: clamp(21px, 2.9vw, 40px);
+      line-height: 1.12;
+      color: rgba(255, 244, 205, 0.045);
+      -webkit-text-stroke: 1px rgba(255, 244, 205, 0.34);
+      text-shadow: 0 0 18px rgba(246, 198, 91, 0.1);
+      opacity: 0.58;
+    }
+
+    h2::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 12%;
+      bottom: -12px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(246, 198, 91, 0.35), transparent);
+      transform-origin: left center;
+      animation: titleLine 4.6s ease-in-out infinite;
+    }
+
+    .subtitle {
+      margin-top: 24px;
+      color: var(--muted);
+      font-size: clamp(17px, 2.3vw, 26px);
+      line-height: 1.7;
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+
+    .lyrics {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      gap: clamp(12px, 1.9vh, 22px);
+      margin-top: clamp(24px, 4.2vh, 44px);
+      font-size: var(--lyrics-size, clamp(25px, 3.1vw, 43px));
+      line-height: 1.5;
+      text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .lyrics p {
+      margin: 0;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(16px);
+      transition:
+        opacity 680ms ease,
+        transform 680ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transition-delay: calc(var(--i) * 115ms + 180ms);
+    }
+
+    .active .lyrics p {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .chorus-text {
+      position: relative;
+      z-index: 2;
+      margin: 0 auto;
+      max-width: 850px;
+      font-size: clamp(36px, 5.8vw, 82px);
+      line-height: 1.42;
+      color: #fff4cd;
+      text-shadow:
+        0 0 28px rgba(246, 198, 91, 0.28),
+        0 18px 46px rgba(0, 0, 0, 0.44);
+    }
+
+    .chorus-text .small {
+      display: block;
+      margin-top: 28px;
+      font-size: clamp(21px, 3.15vw, 42px);
+      color: rgba(255, 248, 226, 0.9);
+    }
+
+    .visual {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: clamp(300px, 54vh, 560px);
+    }
+
+    .orb {
+      position: absolute;
+      width: min(44vw, 500px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 38% 34%, rgba(255, 255, 255, 0.92), rgba(246, 198, 91, 0.2) 16%, transparent 32%),
+        radial-gradient(circle at 55% 60%, rgba(246, 198, 91, 0.28), rgba(143, 39, 90, 0.18) 48%, transparent 71%);
+      filter: blur(1px);
+      opacity: 0.86;
+      animation: pulseOrb 5.8s ease-in-out infinite;
+    }
+
+    .cover-mark {
+      position: relative;
+      width: min(48vw, 500px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+    }
+
+    .cover-cross {
+      position: absolute;
+      width: 22%;
+      height: 66%;
+      border-radius: 99px;
+      background: linear-gradient(180deg, #fff7d5, #d99b3d 42%, #4b3623);
+      box-shadow: 0 0 50px rgba(246, 198, 91, 0.38);
+      transform: rotate(0.5deg);
+    }
+
+    .cover-cross::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 28%;
+      width: 250%;
+      height: 15%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #fff7d5, #d99b3d 58%, #4b3623);
+      transform: translate(-50%, -50%);
+    }
+
+    .olive-branch,
+    .vine-line,
+    .music-lines,
+    .stone,
+    .road-cross,
+    .praise-flame,
+    .quiet-ring {
+      position: relative;
+      width: min(44vw, 480px);
+      aspect-ratio: 1;
+    }
+
+    .olive-branch::before {
+      content: "";
+      position: absolute;
+      left: 47%;
+      top: 9%;
+      width: 7px;
+      height: 82%;
+      border-radius: 99px;
+      background: linear-gradient(#a7c66f, #3d4c26);
+      transform: rotate(24deg);
+      box-shadow: 0 0 18px rgba(166, 198, 111, 0.26);
+    }
+
+    .leaf,
+    .grape,
+    .note-dot,
+    .music-note,
+    .chip,
+    .spark {
+      position: absolute;
+      display: block;
+    }
+
+    .leaf {
+      width: 74px;
+      height: 34px;
+      border-radius: 90% 0 90% 0;
+      background: linear-gradient(135deg, #b7d476, #4f6732 72%);
+      box-shadow: inset 10px 4px 12px rgba(255, 255, 255, 0.16), 0 10px 24px rgba(0, 0, 0, 0.28);
+      animation: leafSway 3.8s ease-in-out infinite;
+    }
+
+    .leaf:nth-child(1) { left: 21%; top: 18%; transform: rotate(-38deg); animation-delay: -0.2s; }
+    .leaf:nth-child(2) { left: 54%; top: 23%; transform: rotate(140deg); animation-delay: -0.7s; }
+    .leaf:nth-child(3) { left: 25%; top: 41%; transform: rotate(-30deg); animation-delay: -1.2s; }
+    .leaf:nth-child(4) { left: 61%; top: 48%; transform: rotate(144deg); animation-delay: -1.6s; }
+    .leaf:nth-child(5) { left: 34%; top: 64%; transform: rotate(-24deg); animation-delay: -2.1s; }
+
+    .oil-drop {
+      position: absolute;
+      left: 48%;
+      bottom: 8%;
+      width: 54px;
+      height: 76px;
+      border-radius: 52% 48% 58% 42% / 64% 64% 36% 36%;
+      background: radial-gradient(circle at 38% 26%, #fff8cd, #f5bc42 36%, #b66b20 78%);
+      transform: rotate(12deg);
+      box-shadow: 0 0 34px rgba(246, 198, 91, 0.45);
+      animation: dropFall 3.4s ease-in-out infinite;
+    }
+
+    .vine-line::before {
+      content: "";
+      position: absolute;
+      inset: 18% 14%;
+      border: 5px solid rgba(246, 198, 91, 0.28);
+      border-left-color: transparent;
+      border-bottom-color: transparent;
+      border-radius: 50%;
+      transform: rotate(-26deg);
+    }
+
+    .grape {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.62), transparent 16px),
+        radial-gradient(circle, #b44878, #5f1745 76%);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+      animation: grapeFloat 4.4s ease-in-out infinite;
+    }
+
+    .grape:nth-child(1) { left: 38%; top: 18%; animation-delay: -0.5s; }
+    .grape:nth-child(2) { left: 29%; top: 30%; animation-delay: -1.2s; }
+    .grape:nth-child(3) { left: 48%; top: 32%; animation-delay: -2s; }
+    .grape:nth-child(4) { left: 38%; top: 44%; animation-delay: -2.5s; }
+    .grape:nth-child(5) { left: 55%; top: 47%; animation-delay: -3s; }
+    .grape:nth-child(6) { left: 45%; top: 60%; animation-delay: -3.4s; }
+
+    .wine-stream {
+      position: absolute;
+      left: 48%;
+      top: 27%;
+      width: 20px;
+      height: 250px;
+      border-radius: 99px;
+      background: linear-gradient(180deg, rgba(255, 196, 202, 0.1), #c64d77, #662148);
+      filter: drop-shadow(0 0 22px rgba(198, 77, 119, 0.55));
+      animation: stream 2.8s ease-in-out infinite;
+    }
+
+    .music-lines {
+      display: grid;
+      align-content: center;
+      gap: 34px;
+    }
+
+    .string {
+      height: 3px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, transparent, rgba(255, 243, 197, 0.95), transparent);
+      transform-origin: center;
+      animation: stringHum 1.8s ease-in-out infinite;
+    }
+
+    .string:nth-child(2) { animation-delay: -0.35s; opacity: 0.82; }
+    .string:nth-child(3) { animation-delay: -0.7s; opacity: 0.7; }
+    .string:nth-child(4) { animation-delay: -1.05s; opacity: 0.58; }
+
+    .note-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff2bd;
+      box-shadow: 0 0 22px rgba(246, 198, 91, 0.72);
+      animation: noteRise 5s ease-in-out infinite;
+    }
+
+    .note-dot:nth-child(5) { left: 18%; top: 64%; animation-delay: -0.5s; }
+    .note-dot:nth-child(6) { left: 58%; top: 70%; animation-delay: -1.8s; }
+    .note-dot:nth-child(7) { left: 76%; top: 56%; animation-delay: -3.1s; }
+
+    .music-note {
+      z-index: 2;
+      color: rgba(255, 244, 205, 0.88);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(34px, 5vw, 68px);
+      line-height: 1;
+      text-shadow:
+        0 0 18px rgba(246, 198, 91, 0.65),
+        0 0 34px rgba(150, 200, 216, 0.28),
+        0 14px 28px rgba(0, 0, 0, 0.34);
+      transform-origin: 50% 85%;
+      animation:
+        noteBounce 2.4s cubic-bezier(0.38, 0, 0.2, 1) infinite,
+        noteGlow 3.2s ease-in-out infinite;
+    }
+
+    .music-note:nth-child(8) {
+      left: 9%;
+      top: 16%;
+      font-size: clamp(38px, 5.8vw, 76px);
+      animation-delay: -0.15s, -0.8s;
+    }
+
+    .music-note:nth-child(9) {
+      left: 70%;
+      top: 20%;
+      color: rgba(150, 200, 216, 0.86);
+      animation-delay: -0.62s, -1.4s;
+    }
+
+    .music-note:nth-child(10) {
+      left: 42%;
+      top: 52%;
+      color: rgba(246, 198, 91, 0.9);
+      font-size: clamp(30px, 4.4vw, 56px);
+      animation-delay: -1.05s, -2.1s;
+    }
+
+    .music-note:nth-child(11) {
+      left: 20%;
+      top: 76%;
+      color: rgba(255, 244, 205, 0.74);
+      font-size: clamp(28px, 4vw, 52px);
+      animation-delay: -1.48s, -0.35s;
+    }
+
+    .music-note:nth-child(12) {
+      left: 80%;
+      top: 66%;
+      color: rgba(255, 244, 205, 0.78);
+      font-size: clamp(32px, 4.8vw, 62px);
+      animation-delay: -1.86s, -2.7s;
+    }
+
+    .stone {
+      display: grid;
+      place-items: center;
+    }
+
+    .stone-core {
+      width: 66%;
+      aspect-ratio: 1.05;
+      border-radius: 41% 59% 50% 50% / 54% 38% 62% 46%;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.22), transparent 32%),
+        linear-gradient(135deg, #b8b1a7, #474342 78%);
+      box-shadow:
+        inset -28px -24px 40px rgba(0, 0, 0, 0.36),
+        0 28px 80px rgba(0, 0, 0, 0.36);
+      animation: stoneBreathe 5.4s ease-in-out infinite;
+    }
+
+    .chip {
+      width: 14px;
+      height: 28px;
+      clip-path: polygon(48% 0, 100% 45%, 62% 100%, 0 70%);
+      background: rgba(255, 248, 226, 0.82);
+      animation: chipFall 3.6s ease-in-out infinite;
+    }
+
+    .chip:nth-child(2) { left: 18%; top: 25%; animation-delay: -0.4s; }
+    .chip:nth-child(3) { left: 73%; top: 22%; animation-delay: -1.4s; }
+    .chip:nth-child(4) { left: 70%; top: 70%; animation-delay: -2.1s; }
+    .chip:nth-child(5) { left: 24%; top: 72%; animation-delay: -2.8s; }
+
+    .road-cross::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      width: 64%;
+      height: 88%;
+      background:
+        linear-gradient(100deg, transparent 0 38%, rgba(255, 244, 205, 0.24) 38% 43%, transparent 43% 100%),
+        linear-gradient(80deg, transparent 0 54%, rgba(255, 244, 205, 0.16) 54% 59%, transparent 59% 100%);
+      transform: translateX(-50%) perspective(300px) rotateX(58deg);
+      transform-origin: bottom;
+      filter: blur(1px);
+    }
+
+    .cross {
+      position: absolute;
+      left: 50%;
+      top: 20%;
+      width: 26px;
+      height: 230px;
+      border-radius: 6px;
+      background: linear-gradient(#fff4cd, #a76f34 68%, #3a261c);
+      transform: translateX(-50%);
+      box-shadow: 0 0 44px rgba(246, 198, 91, 0.32);
+    }
+
+    .cross::before {
+      content: "";
+      position: absolute;
+      top: 28%;
+      left: 50%;
+      width: 140px;
+      height: 23px;
+      border-radius: 6px;
+      background: inherit;
+      transform: translate(-50%, -50%);
+    }
+
+    .praise-flame {
+      display: grid;
+      place-items: center;
+    }
+
+    .flame {
+      width: 46%;
+      aspect-ratio: 0.72;
+      border-radius: 65% 35% 60% 40% / 70% 45% 55% 30%;
+      background:
+        radial-gradient(circle at 42% 64%, #fffce3 0 10%, transparent 32%),
+        linear-gradient(30deg, #d45050, #f6c65b 42%, #fff4cc 74%);
+      transform: rotate(12deg);
+      filter: drop-shadow(0 0 42px rgba(246, 198, 91, 0.54));
+      animation: flame 2.6s ease-in-out infinite;
+    }
+
+    .tear {
+      position: absolute;
+      width: 28px;
+      height: 42px;
+      border-radius: 55% 45% 62% 38% / 67% 63% 37% 33%;
+      background: radial-gradient(circle at 37% 24%, #fff, #96c8d8 42%, rgba(61, 95, 120, 0.22));
+      transform: rotate(18deg);
+      opacity: 0.82;
+      animation: tearGlow 4s ease-in-out infinite;
+    }
+
+    .tear:nth-child(2) { left: 24%; top: 20%; animation-delay: -0.3s; }
+    .tear:nth-child(3) { right: 18%; top: 58%; animation-delay: -1.6s; }
+    .tear:nth-child(4) { left: 33%; bottom: 16%; animation-delay: -2.7s; }
+
+    .quiet-ring {
+      display: grid;
+      place-items: center;
+    }
+
+    .quiet-ring::before,
+    .quiet-ring::after {
+      content: "";
+      position: absolute;
+      width: 64%;
+      aspect-ratio: 1;
+      border: 1px solid rgba(255, 244, 205, 0.38);
+      border-radius: 50%;
+      animation: ringOut 4.5s ease-out infinite;
+    }
+
+    .quiet-ring::after {
+      animation-delay: -2.2s;
+      border-color: rgba(150, 200, 216, 0.24);
+    }
+
+    .final-word {
+      position: relative;
+      z-index: 1;
+      font-size: clamp(28px, 4.4vw, 56px);
+      line-height: 1.45;
+      color: #fff6d5;
+      text-shadow: 0 0 30px rgba(246, 198, 91, 0.3);
+    }
+
+    .crack-light {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.78;
+      background:
+        linear-gradient(116deg, transparent 0 47%, rgba(255, 244, 205, 0.88) 48%, transparent 50%),
+        linear-gradient(102deg, transparent 0 52%, rgba(246, 198, 91, 0.5) 53%, transparent 56%);
+      filter: blur(0.5px) drop-shadow(0 0 24px rgba(246, 198, 91, 0.55));
+      animation: crackShine 4.6s ease-in-out infinite;
+    }
+
+    .nav {
+      position: absolute;
+      left: 50%;
+      bottom: clamp(18px, 3.6vh, 34px);
+      z-index: 10;
+      display: grid;
+      grid-template-columns: 48px minmax(160px, 260px) 48px;
+      gap: 14px;
+      align-items: center;
+      transform: translateX(-50%);
+      font-family: "Microsoft YaHei", sans-serif;
+    }
+
+    .nav button {
+      width: 48px;
+      height: 48px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 50%;
+      color: #fff4cd;
+      background: rgba(9, 9, 12, 0.48);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
+      cursor: pointer;
+      font-size: 26px;
+      line-height: 1;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    .nav button:hover {
+      transform: translateY(-2px);
+      border-color: rgba(246, 198, 91, 0.65);
+      background: rgba(246, 198, 91, 0.14);
+    }
+
+    .nav button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .progress-box {
+      display: grid;
+      gap: 8px;
+      color: rgba(255, 248, 226, 0.74);
+      text-align: center;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+    }
+
+    .bar {
+      height: 4px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .bar span {
+      display: block;
+      width: calc(var(--progress) * 100%);
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #96c8d8, #f6c65b, #d66a70);
+      transition: width 480ms ease;
+    }
+
+    .ambient-tag {
+      position: absolute;
+      left: clamp(20px, 4vw, 48px);
+      top: clamp(18px, 3.5vh, 38px);
+      z-index: 10;
+      color: rgba(255, 248, 226, 0.44);
+      font-family: "Microsoft YaHei", sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+    }
+
+    [data-theme="olive"] {
+      background:
+        radial-gradient(circle at 18% 22%, rgba(89, 111, 56, 0.48), transparent 28vw),
+        radial-gradient(circle at 82% 26%, rgba(246, 198, 91, 0.25), transparent 30vw),
+        linear-gradient(145deg, #050806, #142014 52%, #17110d);
+    }
+
+    [data-theme="wine"] {
+      background:
+        radial-gradient(circle at 20% 18%, rgba(143, 39, 90, 0.44), transparent 30vw),
+        radial-gradient(circle at 83% 70%, rgba(246, 198, 91, 0.18), transparent 34vw),
+        linear-gradient(145deg, #09040b, #1d1021 52%, #170b10);
+    }
+
+    [data-theme="music"] {
+      background:
+        radial-gradient(circle at 72% 20%, rgba(150, 200, 216, 0.24), transparent 28vw),
+        radial-gradient(circle at 24% 75%, rgba(246, 198, 91, 0.23), transparent 32vw),
+        linear-gradient(145deg, #05070d, #121828 55%, #111014);
+    }
+
+    [data-theme="stone"] {
+      background:
+        radial-gradient(circle at 30% 28%, rgba(255, 248, 226, 0.13), transparent 28vw),
+        radial-gradient(circle at 78% 68%, rgba(150, 200, 216, 0.16), transparent 32vw),
+        linear-gradient(145deg, #080808, #20201f 55%, #12100f);
+    }
+
+    [data-theme="cross"] {
+      background:
+        radial-gradient(circle at 52% 18%, rgba(246, 198, 91, 0.32), transparent 24vw),
+        radial-gradient(circle at 52% 98%, rgba(150, 200, 216, 0.22), transparent 36vw),
+        linear-gradient(180deg, #090711, #15121a 45%, #342516 100%);
+    }
+
+    [data-theme="praise"] {
+      background:
+        radial-gradient(circle at 50% 28%, rgba(255, 244, 205, 0.36), transparent 27vw),
+        radial-gradient(circle at 24% 72%, rgba(214, 106, 112, 0.2), transparent 32vw),
+        linear-gradient(145deg, #150b0f, #2a1818 46%, #4a3217);
+    }
+
+    [data-theme="quiet"] {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255, 244, 205, 0.3), transparent 28vw),
+        radial-gradient(circle at 50% 82%, rgba(150, 200, 216, 0.18), transparent 34vw),
+        linear-gradient(145deg, #07090c, #111821 48%, #1c1710);
+    }
+
+    .slide[data-theme="olive"]::before {
+      background:
+        repeating-linear-gradient(62deg, transparent 0 52px, rgba(167, 198, 111, 0.08) 53px 55px, transparent 56px 124px),
+        radial-gradient(ellipse at 74% 44%, rgba(246, 198, 91, 0.12), transparent 38%);
+      animation-name: olivePress;
+      animation-duration: 13s;
+    }
+
+    .slide[data-theme="olive"]::after {
+      background:
+        linear-gradient(180deg, transparent 0 32%, rgba(246, 198, 91, 0.1) 35%, transparent 54%),
+        radial-gradient(ellipse at 32% 72%, rgba(89, 111, 56, 0.28), transparent 40%);
+      animation-name: oilSheen;
+      animation-duration: 7s;
+    }
+
+    .slide[data-theme="music"]::before {
+      background:
+        repeating-linear-gradient(0deg, transparent 0 54px, rgba(255, 244, 205, 0.14) 55px 57px, transparent 58px 84px),
+        linear-gradient(90deg, transparent, rgba(150, 200, 216, 0.08), transparent);
+      animation-name: musicWave;
+      animation-duration: 6.5s;
+    }
+
+    .slide[data-theme="music"]::after {
+      background:
+        radial-gradient(circle at 24% 64%, rgba(150, 200, 216, 0.2), transparent 24%),
+        radial-gradient(circle at 78% 26%, rgba(246, 198, 91, 0.14), transparent 28%);
+      animation-name: slowBreath;
+      animation-duration: 5.6s;
+    }
+
+    .slide[data-theme="stone"]::before {
+      background:
+        linear-gradient(118deg, transparent 0 45%, rgba(255, 248, 226, 0.12) 46%, transparent 49%),
+        linear-gradient(68deg, transparent 0 53%, rgba(150, 200, 216, 0.08) 54%, transparent 56%),
+        repeating-linear-gradient(145deg, transparent 0 58px, rgba(255, 255, 255, 0.04) 59px 60px, transparent 61px 118px);
+      animation-name: chiselLight;
+      animation-duration: 8s;
+    }
+
+    .slide[data-theme="cross"]::before {
+      background:
+        linear-gradient(90deg, transparent 0 48%, rgba(255, 244, 205, 0.12) 49%, rgba(255, 244, 205, 0.12) 51%, transparent 52%),
+        linear-gradient(180deg, transparent 0 32%, rgba(246, 198, 91, 0.1) 33%, transparent 38%);
+      animation-name: crossDawn;
+      animation-duration: 9s;
+    }
+
+    .slide[data-theme="praise"]::before {
+      background:
+        repeating-conic-gradient(from 0deg at 50% 62%, rgba(246, 198, 91, 0.11) 0 7deg, transparent 8deg 22deg),
+        radial-gradient(ellipse at 50% 72%, rgba(214, 106, 112, 0.16), transparent 42%);
+      animation-name: praiseRise;
+      animation-duration: 10s;
+    }
+
+    .slide[data-theme="quiet"]::before {
+      background:
+        linear-gradient(116deg, transparent 0 47%, rgba(255, 244, 205, 0.1) 48%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent 0 64px, rgba(150, 200, 216, 0.045) 65px 66px, transparent 67px 130px);
+      animation-name: quietPulse;
+      animation-duration: 8.5s;
+    }
+
+    @keyframes turnMist {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes veilDrift {
+      0% { transform: translate3d(-4%, -1%, 0) rotate(-1deg); }
+      100% { transform: translate3d(4%, 1%, 0) rotate(1deg); }
+    }
+
+    @keyframes slowBreath {
+      0%, 100% { transform: scale(1) translateY(0); opacity: 0.58; }
+      50% { transform: scale(1.08) translateY(-1.5%); opacity: 0.92; }
+    }
+
+    @keyframes titleLine {
+      0%, 100% { transform: scaleX(0.42); opacity: 0.28; }
+      50% { transform: scaleX(1); opacity: 0.68; }
+    }
+
+    @keyframes olivePress {
+      0% { transform: translate3d(-5%, -2%, 0) scale(1.03); }
+      100% { transform: translate3d(5%, 2%, 0) scale(1.08); }
+    }
+
+    @keyframes oilSheen {
+      0%, 100% { transform: translateY(-4%) scaleY(0.96); opacity: 0.48; }
+      50% { transform: translateY(4%) scaleY(1.05); opacity: 0.86; }
+    }
+
+    @keyframes musicWave {
+      0%, 100% { transform: translateY(-10px) skewY(-1.5deg); }
+      50% { transform: translateY(12px) skewY(1.5deg); }
+    }
+
+    @keyframes chiselLight {
+      0%, 100% { transform: translate3d(-3%, -2%, 0); opacity: 0.52; }
+      50% { transform: translate3d(3%, 2%, 0); opacity: 0.9; }
+    }
+
+    @keyframes crossDawn {
+      0%, 100% { transform: translateY(2%) scale(1); opacity: 0.48; }
+      50% { transform: translateY(-3%) scale(1.04); opacity: 0.88; }
+    }
+
+    @keyframes praiseRise {
+      0% { transform: rotate(-4deg) translateY(4%); opacity: 0.46; }
+      50% { opacity: 0.86; }
+      100% { transform: rotate(4deg) translateY(-5%); opacity: 0.58; }
+    }
+
+    @keyframes quietPulse {
+      0%, 100% { transform: translateX(-2%) scale(1); opacity: 0.42; }
+      50% { transform: translateX(2%) scale(1.05); opacity: 0.82; }
+    }
+
+    @keyframes pulseOrb {
+      50% { transform: scale(1.055); opacity: 0.68; }
+    }
+
+    @keyframes leafSway {
+      50% { translate: 0 -9px; filter: brightness(1.16); }
+    }
+
+    @keyframes dropFall {
+      0%, 100% { transform: translateY(-18px) rotate(12deg) scale(0.9); opacity: 0.62; }
+      48% { transform: translateY(20px) rotate(12deg) scale(1); opacity: 1; }
+    }
+
+    @keyframes grapeFloat {
+      50% { translate: 0 -12px; filter: brightness(1.14); }
+    }
+
+    @keyframes stream {
+      0%, 100% { transform: scaleY(0.74); opacity: 0.56; }
+      50% { transform: scaleY(1.1); opacity: 0.96; }
+    }
+
+    @keyframes stringHum {
+      0%, 100% { transform: scaleX(0.94) translateY(0); }
+      50% { transform: scaleX(1.04) translateY(-4px); box-shadow: 0 0 22px rgba(246, 198, 91, 0.36); }
+    }
+
+    @keyframes noteRise {
+      0% { transform: translateY(38px) scale(0.7); opacity: 0; }
+      40% { opacity: 1; }
+      100% { transform: translateY(-110px) scale(1.25); opacity: 0; }
+    }
+
+    @keyframes noteBounce {
+      0%, 100% {
+        transform: translate3d(0, 16px, 0) rotate(-8deg) scale(0.86);
+        opacity: 0.52;
+      }
+      18% {
+        transform: translate3d(0, -22px, 0) rotate(8deg) scale(1.08);
+        opacity: 1;
+      }
+      34% {
+        transform: translate3d(0, 4px, 0) rotate(-3deg) scale(0.96);
+      }
+      52% {
+        transform: translate3d(0, -10px, 0) rotate(5deg) scale(1.02);
+      }
+    }
+
+    @keyframes noteGlow {
+      0%, 100% { filter: blur(0) brightness(0.94); }
+      50% { filter: blur(0.2px) brightness(1.35); }
+    }
+
+    @keyframes stoneBreathe {
+      50% { transform: scale(1.035) rotate(-1deg); filter: brightness(1.08); }
+    }
+
+    @keyframes chipFall {
+      0%, 100% { transform: translate(0, -18px) rotate(0deg); opacity: 0.2; }
+      45% { opacity: 0.92; }
+      70% { transform: translate(20px, 30px) rotate(70deg); opacity: 0.42; }
+    }
+
+    @keyframes flame {
+      0%, 100% { transform: rotate(9deg) scale(0.98); border-radius: 65% 35% 60% 40% / 70% 45% 55% 30%; }
+      50% { transform: rotate(16deg) scale(1.06); border-radius: 50% 50% 64% 36% / 76% 50% 50% 24%; }
+    }
+
+    @keyframes tearGlow {
+      50% { transform: translateY(22px) rotate(18deg); opacity: 1; filter: brightness(1.35); }
+    }
+
+    @keyframes ringOut {
+      0% { transform: scale(0.54); opacity: 0; }
+      28% { opacity: 0.9; }
+      100% { transform: scale(1.22); opacity: 0; }
+    }
+
+    @keyframes crackShine {
+      50% { opacity: 1; filter: blur(0.2px) drop-shadow(0 0 38px rgba(246, 198, 91, 0.76)); }
+    }
+
+    @media (max-width: 780px) {
+      .slide {
+        grid-template-columns: 20px minmax(0, 1fr) 20px;
+        padding-top: 72px;
+      }
+
+      .slide-inner,
+      .slide.center .slide-inner {
+        grid-template-columns: 1fr;
+        gap: 18px;
+        min-height: auto;
+      }
+
+      .visual {
+        min-height: 210px;
+        order: -1;
+      }
+
+      .cover-mark,
+      .olive-branch,
+      .vine-line,
+      .music-lines,
+      .stone,
+      .road-cross,
+      .praise-flame,
+      .quiet-ring {
+        width: min(74vw, 330px);
+      }
+
+      .lyrics {
+        font-size: var(--lyrics-size, clamp(22px, 6vw, 31px));
+        line-height: 1.44;
+      }
+
+      h1 {
+        font-size: clamp(42px, 13vw, 68px);
+      }
+
+      h2 {
+        font-size: clamp(19px, 5.7vw, 30px);
+      }
+
+      .ambient-tag {
+        font-size: 10px;
+      }
+
+      .nav {
+        grid-template-columns: 44px minmax(135px, 210px) 44px;
+        gap: 10px;
+      }
+
+      .nav button {
+        width: 44px;
+        height: 44px;
+      }
+
+      .kicker::before {
+        width: 28px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+
+      .slide,
+      .lyrics p,
+      .bar span {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" data-theme="olive" style="--progress: 0.083;">
+    <canvas id="particles" aria-hidden="true"></canvas>
+    <div class="ambient-tag">HYMN MEDITATION</div>
+
+    <section class="slides" aria-live="polite">
+      <article class="slide active" data-theme="olive" data-label="封面">
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">诗歌默想</div>
+            <h1>你若不压橄榄成渣</h1>
+            <div class="subtitle">在破碎、炼净与赞美里，看见祢以自己来代替。</div>
+          </div>
+          <div class="visual">
+            <div class="orb"></div>
+            <div class="cover-mark">
+              <div class="cover-cross"></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-theme="olive" data-label="第一节">
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">第一节 · 油与馨香</div>
+            <h2>压碎之后，才有流出</h2>
+            <div class="lyrics">
+              <p style="--i: 0;">你若不压橄榄成渣，它就不能成油，</p>
+              <p style="--i: 1;">你若不投葡萄入醡，它就不能变成酒；</p>
+              <p style="--i: 2;">你若不炼哪哒成膏，它就不流芬芳；</p>
+              <p style="--i: 3;">主，我这人是否也要受祢许可的创伤？</p>
+            </div>
+          </div>
+          <div class="visual">
+            <div class="olive-branch">
+              <span class="leaf"></span>
+              <span class="leaf"></span>
+              <span class="leaf"></span>
+              <span class="leaf"></span>
+              <span class="leaf"></span>
+              <span class="oil-drop"></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide center" data-theme="quiet" data-label="副歌">
+        <div class="crack-light"></div>
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">副歌</div>
+            <p class="chorus-text">每次的打击，<br>都是真利益；<span class="small">如果祢收去的东西，祢以自己来代替。</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-theme="music" data-label="第二节">
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">第二节 · 心弦</div>
+            <h2>苦虐之中，音乐甘甜</h2>
+            <div class="lyrics">
+              <p style="--i: 0;">你是否要鼓我心弦，发出祢的音乐？</p>
+              <p style="--i: 1;">是否要使音乐甘甜，须有祢爱来苦虐？</p>
+              <p style="--i: 2;">是否当我下倒之时，才能识爱的心？</p>
+              <p style="--i: 3;">我是不怕任何损失，若祢让我来相亲。</p>
+            </div>
+          </div>
+          <div class="visual">
+            <div class="music-lines">
+              <span class="string"></span>
+              <span class="string"></span>
+              <span class="string"></span>
+              <span class="string"></span>
+              <span class="note-dot"></span>
+              <span class="note-dot"></span>
+              <span class="note-dot"></span>
+              <span class="music-note">♪</span>
+              <span class="music-note">♫</span>
+              <span class="music-note">♩</span>
+              <span class="music-note">♬</span>
+              <span class="music-note">♪</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide center" data-theme="quiet" data-label="副歌">
+        <div class="crack-light"></div>
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">副歌</div>
+            <p class="chorus-text">每次的打击，<br>都是真利益；<span class="small">如果祢收去的东西，祢以自己来代替。</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-theme="stone" data-label="第三节">
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">第三节 · 雕削</div>
+            <h2>被塑造时，求祢喜乐</h2>
+            <div class="lyrics">
+              <p style="--i: 0;">主，我惭愧，因我感觉总是保留自己，</p>
+              <p style="--i: 1;">虽我也曾受祢雕削，我却感觉受强逼！</p>
+              <p style="--i: 2;">主，祢能否照祢喜乐，没有顾忌去行，</p>
+              <p style="--i: 3;">不顾我的感觉如何，只是要求祢欢欣？</p>
+            </div>
+          </div>
+          <div class="visual">
+            <div class="stone">
+              <div class="stone-core"></div>
+              <span class="chip"></span>
+              <span class="chip"></span>
+              <span class="chip"></span>
+              <span class="chip"></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide center" data-theme="quiet" data-label="副歌">
+        <div class="crack-light"></div>
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">副歌</div>
+            <p class="chorus-text">每次的打击，<br>都是真利益；<span class="small">如果祢收去的东西，祢以自己来代替。</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-theme="cross" data-label="第四节">
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">第四节 · 十字架</div>
+            <h2>祢若喜悦，我愿负轭</h2>
+            <div class="lyrics">
+              <p style="--i: 0;">如果祢我所有苦乐不能完全相同，</p>
+              <p style="--i: 1;">要祢喜乐，须我负轭，我就愿意多苦痛；</p>
+              <p style="--i: 2;">主，我全心求祢喜悦，不惜任何代价；</p>
+              <p style="--i: 3;">祢若喜悦，并得荣耀，我背任何十字架。</p>
+            </div>
+          </div>
+          <div class="visual">
+            <div class="road-cross">
+              <div class="cross"></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide center" data-theme="quiet" data-label="副歌">
+        <div class="crack-light"></div>
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">副歌</div>
+            <p class="chorus-text">每次的打击，<br>都是真利益；<span class="small">如果祢收去的东西，祢以自己来代替。</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide" data-theme="praise" data-label="第五节">
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">第五节 · 赞美</div>
+            <h2>边流泪，边更甘甜</h2>
+            <div class="lyrics">
+              <p style="--i: 0;">我要赞美，再要赞美，赞美何等甘甜；</p>
+              <p style="--i: 1;">虽我边赞美边流泪，甘甜比前更加添；</p>
+              <p style="--i: 2;">能有什么比祢更好？比祢喜悦可宝？</p>
+              <p style="--i: 3;">主，我只有一个祷告：祢能加增，我减少。</p>
+            </div>
+          </div>
+          <div class="visual">
+            <div class="praise-flame">
+              <div class="flame"></div>
+              <span class="tear"></span>
+              <span class="tear"></span>
+              <span class="tear"></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide center" data-theme="quiet" data-label="副歌">
+        <div class="crack-light"></div>
+        <div class="slide-inner">
+          <div>
+            <div class="kicker">副歌</div>
+            <p class="chorus-text">每次的打击，<br>都是真利益；<span class="small">如果祢收去的东西，祢以自己来代替。</span></p>
+          </div>
+        </div>
+      </article>
+
+      <article class="slide center" data-theme="quiet" data-label="结束">
+        <div class="slide-inner">
+          <div class="visual">
+            <div class="quiet-ring">
+              <div class="final-word">祢以自己来代替。<br>祢能加增，我减少。</div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <nav class="nav" aria-label="翻页控制">
+      <button type="button" class="prev-btn" aria-label="上一页">‹</button>
+      <div class="progress-box">
+        <div><span class="page-now">01</span> / <span class="page-total">12</span> · <span class="page-label">封面</span></div>
+        <div class="bar" aria-hidden="true"><span></span></div>
+      </div>
+      <button type="button" class="next-btn" aria-label="下一页">›</button>
+    </nav>
+  </main>
+
+  <script>
+    const stage = document.querySelector(".stage");
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const prevButton = document.querySelector(".prev-btn");
+    const nextButton = document.querySelector(".next-btn");
+    const now = document.querySelector(".page-now");
+    const total = document.querySelector(".page-total");
+    const label = document.querySelector(".page-label");
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    const embedded = new URLSearchParams(window.location.search).get("embed") === "1";
+
+    let activeIndex = 0;
+    let width = 0;
+    let height = 0;
+    let particles = [];
+    let pointerX = 0.5;
+    let pointerY = 0.5;
+    let rafId = 0;
+
+    total.textContent = String(slides.length).padStart(2, "0");
+
+    const themeColors = {
+      olive: ["#f6c65b", "#a7c66f", "#fff4cd"],
+      wine: ["#d66a70", "#8f275a", "#f6c65b"],
+      music: ["#96c8d8", "#fff4cd", "#f6c65b"],
+      stone: ["#c8c1b8", "#96c8d8", "#fff4cd"],
+      cross: ["#f6c65b", "#fff4cd", "#96c8d8"],
+      praise: ["#fff4cd", "#f6c65b", "#d66a70"],
+      quiet: ["#fff4cd", "#96c8d8", "#f6c65b"]
+    };
+
+    function fitCanvas() {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * ratio);
+      canvas.height = Math.floor(height * ratio);
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      createParticles();
+      requestAnimationFrame(fitActiveLyrics);
+    }
+
+    function createParticles() {
+      const count = Math.min(150, Math.max(80, Math.floor((width * height) / 12000)));
+      const colors = themeColors[slides[activeIndex].dataset.theme] || themeColors.olive;
+      particles = Array.from({ length: count }, (_, i) => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 2.4 + 0.6,
+        vx: (Math.random() - 0.5) * 0.18,
+        vy: -(Math.random() * 0.34 + 0.08),
+        alpha: Math.random() * 0.55 + 0.16,
+        hue: colors[i % colors.length],
+        phase: Math.random() * Math.PI * 2
+      }));
+    }
+
+    function drawParticles(t) {
+      ctx.clearRect(0, 0, width, height);
+      const theme = slides[activeIndex].dataset.theme;
+      const colors = themeColors[theme] || themeColors.olive;
+
+      const glow = ctx.createRadialGradient(
+        width * (0.38 + pointerX * 0.24),
+        height * (0.25 + pointerY * 0.26),
+        0,
+        width * 0.52,
+        height * 0.45,
+        Math.max(width, height) * 0.52
+      );
+      glow.addColorStop(0, "rgba(246, 198, 91, 0.14)");
+      glow.addColorStop(0.38, "rgba(150, 200, 216, 0.05)");
+      glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, width, height);
+
+      particles.forEach((p, i) => {
+        p.phase += 0.012;
+        p.x += p.vx + Math.sin(p.phase) * 0.12 + (pointerX - 0.5) * 0.04;
+        p.y += p.vy + Math.cos(p.phase * 0.7) * 0.04;
+
+        if (p.y < -20) {
+          p.y = height + 20;
+          p.x = Math.random() * width;
+        }
+        if (p.x < -20) p.x = width + 20;
+        if (p.x > width + 20) p.x = -20;
+
+        ctx.globalAlpha = p.alpha * (0.7 + Math.sin(t * 0.001 + p.phase) * 0.3);
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = colors[0];
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 8; i += 1) {
+        const y = height * (0.18 + i * 0.095) + Math.sin(t * 0.0006 + i) * 18;
+        ctx.beginPath();
+        ctx.moveTo(-20, y);
+        for (let x = 0; x <= width + 40; x += 60) {
+          ctx.lineTo(x, y + Math.sin(x * 0.008 + t * 0.001 + i) * 14);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      rafId = requestAnimationFrame(drawParticles);
+    }
+
+    function fitActiveLyrics() {
+      const lyrics = slides[activeIndex].querySelector(".lyrics");
+      if (!lyrics) return;
+
+      lyrics.style.removeProperty("--lyrics-size");
+      const lines = Array.from(lyrics.querySelectorAll("p"));
+      if (!lines.length) return;
+
+      const available = Math.max(120, lyrics.clientWidth - 4);
+      const baseSize = parseFloat(getComputedStyle(lyrics).fontSize);
+      const widest = Math.max(...lines.map((line) => line.scrollWidth));
+      if (widest <= available) return;
+
+      const fittedSize = Math.max(13, Math.floor(baseSize * (available / widest) * 98) / 100);
+      lyrics.style.setProperty("--lyrics-size", fittedSize + "px");
+    }
+
+    function updateSlide(nextIndex) {
+      const clamped = Math.max(0, Math.min(slides.length - 1, nextIndex));
+      if (clamped === activeIndex) return;
+
+      const direction = clamped > activeIndex ? 1 : -1;
+      slides[activeIndex].classList.remove("active");
+      slides[activeIndex].classList.toggle("prev", direction > 0);
+      activeIndex = clamped;
+
+      slides.forEach((slide, index) => {
+        slide.classList.toggle("active", index === activeIndex);
+        slide.classList.toggle("prev", index < activeIndex);
+      });
+
+      const theme = slides[activeIndex].dataset.theme || "olive";
+      stage.dataset.theme = theme;
+      stage.style.setProperty("--progress", String((activeIndex + 1) / slides.length));
+      stage.style.setProperty("--slide-x", direction > 0 ? "-3%" : "3%");
+      window.setTimeout(() => stage.style.setProperty("--slide-x", "0%"), 120);
+
+      now.textContent = String(activeIndex + 1).padStart(2, "0");
+      label.textContent = slides[activeIndex].dataset.label || "";
+      prevButton.disabled = activeIndex === 0;
+      nextButton.disabled = activeIndex === slides.length - 1;
+      createParticles();
+      requestAnimationFrame(fitActiveLyrics);
+      announceParent("state");
+    }
+
+    function step(delta) {
+      const target = activeIndex + delta;
+      if (embedded && (target < 0 || target >= slides.length)) {
+        window.parent.postMessage({
+          type: "worship:boundary",
+          direction: delta > 0 ? 1 : -1,
+          title: document.title
+        }, "*");
+        return;
+      }
+      updateSlide(activeIndex + delta);
+    }
+
+    function announceParent(type) {
+      if (!embedded) return;
+      window.parent.postMessage({
+        type: "worship:" + type,
+        title: document.title,
+        sectionLabel: "正式诗歌 2",
+        current: activeIndex,
+        count: slides.length
+      }, "*");
+    }
+
+    prevButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      step(-1);
+    });
+
+    nextButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      step(1);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
+        event.preventDefault();
+        step(1);
+      }
+      if (event.key === "ArrowLeft" || event.key === "PageUp") {
+        event.preventDefault();
+        step(-1);
+      }
+      if (event.key === "Home") updateSlide(0);
+      if (event.key === "End") updateSlide(slides.length - 1);
+    });
+
+    document.addEventListener("click", (event) => {
+      const isControl = event.target.closest("button, nav");
+      if (isControl) return;
+      step(event.clientX > window.innerWidth / 2 ? 1 : -1);
+    });
+
+    document.addEventListener("pointermove", (event) => {
+      pointerX = event.clientX / Math.max(1, window.innerWidth);
+      pointerY = event.clientY / Math.max(1, window.innerHeight);
+    });
+
+    window.addEventListener("resize", fitCanvas);
+
+    window.addEventListener("message", (event) => {
+      const data = event.data || {};
+      if (data.type === "worship:navigate") {
+        step(Number(data.delta) || 0);
+      }
+      if (data.type === "worship:go") {
+        const target = data.position === "last" ? slides.length - 1 : Number(data.index) || 0;
+        updateSlide(target);
+        announceParent("state");
+      }
+      if (data.type === "worship:ping") {
+        announceParent("ready");
+      }
+    });
+
+    prevButton.disabled = true;
+    if (embedded) {
+      document.body.classList.add("embedded");
+      document.querySelector(".nav").style.display = "none";
+    }
+    fitCanvas();
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(drawParticles);
+    window.setTimeout(() => announceParent("ready"), 0);
+  </script>
+</body>
+</html>

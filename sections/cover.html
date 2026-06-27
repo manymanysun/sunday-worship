@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/module.css">
+  <title>主日礼拜</title>
+</head>
+<body>
+  <div id="worship-module"></div>
+  <script src="../shared/module.js"></script>
+  <script>
+    WorshipModule.mount({
+      title: "主日礼拜",
+      sectionLabel: "首页",
+      theme: "scripture",
+      particle: "#ffe5a8",
+      slides: [{
+        image: "../assets/worship-cover.png",
+        eyebrow: "SUNDAY WORSHIP",
+        title: "主日礼拜",
+        subtitle: "当以圣洁的妆饰敬拜耶和华"
+      }]
+    });
+  </script>
+</body>
+</html>

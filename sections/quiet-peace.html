@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/module.css">
+  <title>你是我的平安</title>
+</head>
+<body>
+  <div id="worship-module"></div>
+  <script src="../shared/module.js"></script>
+  <script>
+    const peaceVerse = [
+      "你是我的平安，怒涛中的平安",
+      "风雨中的宁静，忙碌中的安息",
+      "你是我的平安，怒涛中的平安",
+      "风雨中的宁静，忙碌中的安息"
+    ];
+    const peaceChorus = [
+      "耶和华唯你是神，洪水泛滥时你是神",
+      "坐着为王直到永远，直到永远",
+      "耶和华唯你是神，洪水泛滥时你是神",
+      "平安的福赐给我们，赐给我们"
+    ];
+    WorshipModule.mount({
+      title: "你是我的平安",
+      sectionLabel: "安静诗歌",
+      eyebrow: "安静诗歌",
+      theme: "water",
+      visual: "water",
+      accent: "#a9d6db",
+      accentSoft: "rgba(73, 150, 166, 0.25)",
+      particle: "#cde8e6",
+      slides: [
+        { title: "你是我的平安", lines: peaceVerse, visual: "water" },
+        { title: "洪水泛滥时，祢坐着为王", lines: peaceChorus, visual: "water" },
+        { title: "你是我的平安", lines: peaceVerse, visual: "water" },
+        { title: "唯祢是神", lines: peaceChorus, visual: "water" },
+        { title: "平安的福，赐给我们", lines: peaceChorus, visual: "water" }
+      ]
+    });
+  </script>
+</body>
+</html>
