@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/module.css">
+  <title>丰盛的生命</title>
+</head>
+<body>
+  <div id="worship-module"></div>
+  <script src="../shared/module.js"></script>
+  <script>
+    WorshipModule.mount({
+      title: "丰盛的生命",
+      sectionLabel: "证道",
+      theme: "vine",
+      accent: "#e8cd8d",
+      accentSoft: "rgba(232, 205, 141, 0.2)",
+      particle: "#f1d99e",
+      slides: [
+        {
+          image: "../assets/sermon-vineyard.png",
+          eyebrow: "主日证道",
+          title: "丰盛的生命",
+          subtitle: "约翰福音 15:1–8 · 王牧师"
+        },
+        {
+          image: "../assets/sermon-vineyard.png",
+          variant: "question",
+          eyebrow: "证道回应 · 小组讨论",
+          title: "回应与讨论",
+          subtitle: "根据今天的话语，我如何才能更好地住在主的里面，<br>有哪些需要立刻调整的？"
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

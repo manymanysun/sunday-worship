@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sunday Worship HTML Builder"
+  short_description: "Build polished animated HTML worship presentations"
+  default_prompt: "Use $build-sunday-worship to turn my songs, sermon, prayers, announcements, and photos into a complete Sunday worship presentation."

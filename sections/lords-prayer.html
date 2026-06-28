@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/module.css">
+  <title>主祷文</title>
+</head>
+<body>
+  <div id="worship-module"></div>
+  <script src="../shared/module.js"></script>
+  <script>
+    WorshipModule.mount({
+      title: "主祷文",
+      sectionLabel: "主祷文",
+      eyebrow: "同心祷告 · 主所教导",
+      theme: "scripture",
+      accent: "#e5c680",
+      accentSoft: "rgba(229, 198, 128, 0.18)",
+      particle: "#ead59f",
+      slides: [
+        {
+          mode: "scripture",
+          center: true,
+          title: "主祷文",
+          lines: [
+            "我们在天上的父，愿人都尊你的名为圣；",
+            "愿你的国降临；愿你的旨意行在地上，如同行在天上；",
+            "我们日用的饮食，今日赐给我们；",
+            "免我们的债，如同我们免了人的债；",
+            "不叫我们遇见试探，救我们脱离凶恶；",
+            "因为国度、权柄、荣耀全是你的，直到永远。阿们！"
+          ]
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

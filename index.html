@@ -71,6 +71,14 @@
       padding: 0;
       background: transparent;
       cursor: pointer;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .click-zone:focus,
+    .click-zone:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .click-zone.left { left: 0; }
@@ -96,18 +104,51 @@
     }
 
     .progress {
-      height: 3px;
-      overflow: hidden;
+      position: relative;
+      width: 100%;
+      height: 13px;
+      overflow: visible;
+      border: 0;
       border-radius: 99px;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .progress::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 5px;
+      height: 3px;
+      border-radius: inherit;
       background: rgba(255, 255, 255, 0.16);
     }
 
     .progress span {
-      display: block;
+      position: absolute;
+      left: 0;
+      top: 5px;
       width: var(--progress, 0%);
-      height: 100%;
+      height: 3px;
       border-radius: inherit;
       background: linear-gradient(90deg, #9eced3, #edc475, #d78a70);
+      pointer-events: none;
+      transition: width 240ms ease;
+    }
+
+    .progress:hover::before {
+      background: rgba(255, 255, 255, 0.26);
+    }
+
+    .progress:focus,
+    .progress:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .section-chip {
@@ -148,7 +189,7 @@
           · <span id="local-page">01 / 01</span>
           · 全程 <span id="global-page">01 / 24</span>
         </div>
-        <div class="progress"><span id="progress-bar"></span></div>
+        <button class="progress" id="progress-track" type="button" aria-label="按全程进度跳转页面"><span id="progress-bar"></span></button>
       </div>
     </div>
   </main>
@@ -162,6 +203,7 @@
     const sectionChip = document.getElementById("section-chip");
     const localPage = document.getElementById("local-page");
     const globalPage = document.getElementById("global-page");
+    const progressTrack = document.getElementById("progress-track");
     const progressBar = document.getElementById("progress-bar");
     const totalPages = service.reduce((sum, section) => sum + section.pages, 0);
     let activeSlot = 0;
@@ -188,6 +230,7 @@
       const currentGlobalPage = completedPages + state.current + 1;
       globalPage.textContent = `${String(currentGlobalPage).padStart(2, "0")} / ${String(totalPages).padStart(2, "0")}`;
       progressBar.style.setProperty("--progress", `${currentGlobalPage / totalPages * 100}%`);
+      progressTrack.setAttribute("aria-label", `全程第 ${currentGlobalPage} 页，共 ${totalPages} 页；点击跳转`);
     }
 
     function send(message) {
@@ -202,13 +245,40 @@
 
     function transitionSection(direction) {
       const target = sectionIndex + direction;
+      transitionToSection(target, direction, null);
+    }
+
+    function transitionToSection(target, direction, targetIndex) {
       if (transitioning || target < 0 || target >= service.length) return;
 
       transitioning = true;
       const nextSlot = activeSlot === 0 ? 1 : 0;
       const nextFrame = slots[nextSlot].querySelector("iframe");
-      pending = { target, nextSlot, direction };
+      pending = { target, nextSlot, direction, targetIndex };
       nextFrame.src = service[target].src;
+    }
+
+    function resolveGlobalPage(globalIndex) {
+      const clamped = Math.max(0, Math.min(totalPages - 1, globalIndex));
+      let offset = 0;
+      for (let index = 0; index < service.length; index += 1) {
+        const nextOffset = offset + service[index].pages;
+        if (clamped < nextOffset) {
+          return { section: index, local: clamped - offset };
+        }
+        offset = nextOffset;
+      }
+      return { section: service.length - 1, local: service[service.length - 1].pages - 1 };
+    }
+
+    function goToGlobalPage(globalIndex) {
+      if (transitioning) return;
+      const target = resolveGlobalPage(globalIndex);
+      if (target.section === sectionIndex) {
+        send({ type: "worship:go", index: target.local });
+        return;
+      }
+      transitionToSection(target.section, target.section > sectionIndex ? 1 : -1, target.local);
     }
 
     function finishTransition(message) {
@@ -216,14 +286,18 @@
       const oldSlot = activeSlot;
       sectionIndex = pending.target;
       activeSlot = pending.nextSlot;
-      const position = pending.direction > 0 ? "first" : "last";
-      slots[activeSlot].querySelector("iframe").contentWindow.postMessage({ type: "worship:go", position }, "*");
+      const count = Math.max(1, Number(message.count) || service[sectionIndex].pages || 1);
+      const requestedIndex = Number.isInteger(pending.targetIndex)
+        ? pending.targetIndex
+        : (pending.direction > 0 ? 0 : count - 1);
+      const targetIndex = Math.max(0, Math.min(count - 1, requestedIndex));
+      slots[activeSlot].querySelector("iframe").contentWindow.postMessage({ type: "worship:go", index: targetIndex }, "*");
       slots[activeSlot].classList.add("active");
       slots[oldSlot].classList.remove("active");
       updateStatus({
         sectionLabel: service[sectionIndex].label,
-        current: position === "last" ? Math.max(0, (message.count || 1) - 1) : 0,
-        count: message.count || 1
+        current: targetIndex,
+        count
       });
       window.setTimeout(() => {
         slots[oldSlot].querySelector("iframe").src = "about:blank";
@@ -255,6 +329,12 @@
 
     document.querySelector(".click-zone.left").addEventListener("click", () => navigate(-1));
     document.querySelector(".click-zone.right").addEventListener("click", () => navigate(1));
+    progressTrack.addEventListener("click", (event) => {
+      const rect = progressTrack.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width)));
+      const targetPage = Math.min(totalPages - 1, Math.floor(ratio * totalPages));
+      goToGlobalPage(targetPage);
+    });
 
     document.addEventListener("keydown", (event) => {
       if (event.key === "ArrowRight" || event.key === "PageDown" || event.key === " ") {
@@ -264,6 +344,14 @@
       if (event.key === "ArrowLeft" || event.key === "PageUp") {
         event.preventDefault();
         navigate(-1);
+      }
+      if (event.key === "Home") {
+        event.preventDefault();
+        goToGlobalPage(0);
+      }
+      if (event.key === "End") {
+        event.preventDefault();
+        goToGlobalPage(totalPages - 1);
       }
     });
 

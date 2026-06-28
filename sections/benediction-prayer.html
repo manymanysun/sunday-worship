@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../shared/module.css">
+  <title>祝福祷告</title>
+</head>
+<body>
+  <div id="worship-module"></div>
+  <script src="../shared/module.js"></script>
+  <script>
+    WorshipModule.mount({
+      title: "祝福祷告",
+      sectionLabel: "祝福祷告",
+      theme: "blessing",
+      visual: "blessing-light",
+      accent: "#f0d494",
+      accentSoft: "rgba(240, 212, 148, 0.22)",
+      particle: "#f4dda7",
+      slides: [
+        {
+          title: "愿主赐福保守你",
+          eyebrow: "祝福祷告 · BENEDICTION",
+          lines: [
+            "愿主的恩惠、慈爱与平安",
+            "常与你和你的家人同在"
+          ]
+        }
+      ]
+    });
+  </script>
+</body>
+</html>

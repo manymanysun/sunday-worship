@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>奉献</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Noto Serif SC", "Songti SC", "SimSun", "Microsoft YaHei", serif; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #090b0e; color: #fff8e7; }
+    .offering-stage { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; padding: clamp(48px, 6.5vh, 74px) clamp(48px, 6vw, 92px) clamp(58px, 8vh, 88px); background: radial-gradient(circle at 80% 24%, rgba(229,190,112,.22), transparent 28vw), radial-gradient(circle at 15% 86%, rgba(100,140,151,.18), transparent 36vw), linear-gradient(145deg,#08090c,#1c2024 54%,#241a10); }
+    .offering-stage::before { content:""; position:absolute; inset:-16%; z-index:-2; background: repeating-linear-gradient(116deg,transparent 0 48px,rgba(255,255,255,.03) 49px 50px,transparent 51px 112px); animation: veil 18s ease-in-out infinite alternate; }
+    .offering-stage::after { content:""; position:absolute; right:3%; top:-22%; z-index:-1; width:52%; height:110%; background:linear-gradient(116deg,transparent 0 40%,rgba(255,234,181,.13) 49%,transparent 61%); filter:blur(8px); animation: beam 9s ease-in-out infinite alternate; }
+    .eyebrow { color:rgba(255,248,231,.58); font-family:"Microsoft YaHei",sans-serif; font-size:12px; letter-spacing:.16em; }
+    h1 { margin:10px 0 clamp(24px,3.5vh,38px); font-size:clamp(43px,5.5vw,74px); line-height:1; font-weight:600; text-shadow:0 14px 34px rgba(0,0,0,.42); }
+    .offering-grid { display:grid; grid-template-columns:minmax(360px,.9fr) minmax(430px,1.2fr); gap:clamp(28px,4vw,62px); align-items:start; max-width:1320px; margin:0 auto; }
+    .guidelines { display:grid; gap:10px; }
+    .rule { display:grid; grid-template-columns:42px 1fr; gap:14px; align-items:center; min-height:64px; padding:10px 16px 10px 10px; border:1px solid rgba(229,190,112,.16); border-radius:14px; background:linear-gradient(90deg,rgba(229,190,112,.09),rgba(255,255,255,.025)); font-size:clamp(19px,1.8vw,26px); line-height:1.4; opacity:0; transform:translateX(-18px); animation:ruleIn .65s ease forwards; }
+    .rule:nth-child(2){animation-delay:.12s}.rule:nth-child(3){animation-delay:.24s}.rule:nth-child(4){animation-delay:.36s}
+    .num { display:grid; place-items:center; width:40px; height:40px; border-radius:50%; color:#2b2115; font-family:Georgia,serif; font-size:21px; background:linear-gradient(135deg,#fff0bf,#bd8640); box-shadow:0 0 20px rgba(229,190,112,.2); }
+    .scriptures { display:grid; gap:18px; }
+    blockquote { position:relative; margin:0; padding:18px 22px 17px 28px; border-left:2px solid rgba(229,190,112,.64); border-radius:0 14px 14px 0; background:rgba(7,9,11,.28); font-size:clamp(18px,1.7vw,24px); line-height:1.65; text-shadow:0 8px 22px rgba(0,0,0,.34); opacity:0; transform:translateY(16px); animation:quoteIn .7s ease .3s forwards; }
+    blockquote:nth-child(2){animation-delay:.52s}
+    cite { display:block; margin-top:9px; color:#dfbd7b; font-family:"Microsoft YaHei",sans-serif; font-size:.62em; font-style:normal; letter-spacing:.06em; }
+    .coin { position:absolute; border-radius:50%; border:2px solid rgba(229,190,112,.26); animation:coinRise 7s ease-in-out infinite; }
+    .coin.c1{left:5%;bottom:-30px;width:42px;height:42px}.coin.c2{left:47%;bottom:-50px;width:25px;height:25px;animation-delay:-2s}.coin.c3{right:7%;bottom:-35px;width:34px;height:34px;animation-delay:-4s}
+    @keyframes veil{to{transform:translate3d(5%,2%,0) rotate(1deg)}}
+    @keyframes beam{to{transform:translateX(-7%) rotate(3deg);opacity:.55}}
+    @keyframes ruleIn{to{opacity:1;transform:none}}
+    @keyframes quoteIn{to{opacity:1;transform:none}}
+    @keyframes coinRise{0%{transform:translateY(0) rotateY(0);opacity:0}25%{opacity:.7}100%{transform:translateY(-760px) rotateY(540deg);opacity:0}}
+    @media(max-width:850px){.offering-stage{padding:34px 28px 54px}.offering-grid{grid-template-columns:1fr;gap:16px}.guidelines{grid-template-columns:1fr 1fr}.rule{font-size:16px;min-height:55px}blockquote{font-size:16px;padding:12px 16px}h1{font-size:38px;margin-bottom:18px}}
+    @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}}
+  </style>
+</head>
+<body>
+  <main class="offering-stage">
+    <span class="coin c1"></span><span class="coin c2"></span><span class="coin c3"></span>
+    <div class="eyebrow">奉献 · OFFERING</div>
+    <h1>甘心乐意地献上</h1>
+    <section class="offering-grid">
+      <div class="guidelines">
+        <div class="rule"><span class="num">1</span><span>有在其他地方奉献的，不用奉献</span></div>
+        <div class="rule"><span class="num">2</span><span>不是委身在虹民教会的，不用奉献</span></div>
+        <div class="rule"><span class="num">3</span><span>慕道友或不明白奉献之道的，不要奉献</span></div>
+        <div class="rule"><span class="num">4</span><span>不甘心乐意的，不要奉献</span></div>
+      </div>
+      <div class="scriptures">
+        <blockquote>万军之耶和华说：你们要将当纳的十分之一全然送入仓库，使我家有粮，以此试试我是否为你们敞开天上的窗户，倾福与你们，甚至无处可容。<cite>玛拉基书 3:10 · 和合本</cite></blockquote>
+        <blockquote>你们不可停止聚会，好像那些停止惯了的人，倒要彼此劝勉。既知道那日子临近，就更当如此。<cite>希伯来书 10:25 · 和合本</cite></blockquote>
+      </div>
+    </section>
+  </main>
+  <script>
+    function announce(type) {
+      window.parent.postMessage({ type: `worship:${type}`, title: document.title, sectionLabel: "奉献", current: 0, count: 1 }, "*");
+    }
+    function boundary(delta) {
+      window.parent.postMessage({ type: "worship:boundary", direction: delta > 0 ? 1 : -1, title: document.title }, "*");
+    }
+    window.addEventListener("message", (event) => {
+      const data = event.data || {};
+      if (data.type === "worship:navigate") boundary(Number(data.delta) || 1);
+      if (data.type === "worship:go") announce("state");
+      if (data.type === "worship:ping") announce("ready");
+    });
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) boundary(1);
+      if (["ArrowLeft", "PageUp"].includes(event.key)) boundary(-1);
+    });
+    document.addEventListener("click", (event) => boundary(event.clientX > innerWidth / 2 ? 1 : -1));
+    announce("ready");
+  </script>
+</body>
+</html>

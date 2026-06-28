@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>你是为了接受主爱被拣选的人</title>
+  <style>
+    :root { color-scheme: dark; font-family: "Noto Serif SC", "Songti SC", "SimSun", "Microsoft YaHei", serif; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #06080b; color: #fff9e9; user-select: none; }
+    .stage { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; background: #06080b; }
+    .photo-layer { position: absolute; inset: 0; z-index: 0; overflow: hidden; opacity: 0; transition: opacity 1.6s ease; }
+    .photo-layer.active { opacity: 1; }
+    .blur-bg, .main-photo { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .blur-bg { overflow: hidden; background: #101419; }
+    .blur-bg img { width: 100%; height: 100%; object-fit: cover; filter: blur(34px) brightness(.58) saturate(.82); transform: scale(1.14); }
+    .main-photo { display: grid; place-items: center; overflow: hidden; }
+    .main-photo img { display: block; width: 100%; height: 100%; object-fit: cover; transform-origin: center center; }
+    .photo-layer.landscape .main-photo img.zoom-in { animation: landscapeZoomIn 10s ease-in-out forwards; }
+    .photo-layer.landscape .main-photo img.zoom-out { animation: landscapeZoomOut 10s ease-in-out forwards; }
+    .photo-layer.landscape .blur-bg { opacity: 0; }
+    .photo-layer.portrait .main-photo { left: auto; right: clamp(24px, 4vw, 72px); top: 4vh; bottom: 4vh; width: min(43vw, 600px); height: 92vh; border-radius: 18px; box-shadow: 0 28px 80px rgba(0,0,0,.48), 0 0 0 1px rgba(255,255,255,.1); }
+    .photo-layer.portrait .main-photo img { object-fit: contain; background: rgba(5,8,10,.3); animation: portraitBreath 10s ease-in-out forwards; }
+    .shade { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(90deg, rgba(3,6,9,.9) 0%, rgba(3,6,9,.74) 35%, rgba(3,6,9,.24) 66%, rgba(3,6,9,.08) 100%), linear-gradient(0deg, rgba(3,6,9,.72), transparent 50%); }
+    .photo-layer.portrait .shade { background: linear-gradient(90deg, rgba(3,6,9,.93) 0%, rgba(3,6,9,.79) 42%, rgba(3,6,9,.2) 70%, rgba(3,6,9,.08)), linear-gradient(0deg, rgba(3,6,9,.62), transparent 48%); }
+    .photo-layer::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: radial-gradient(circle at 72% 23%, rgba(255,225,158,.12), transparent 31vw); }
+    .slides { position: relative; z-index: 5; width: 100%; height: 100%; }
+    .slide { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: clamp(60px, 8vh, 90px) clamp(42px, 6vw, 96px) clamp(78px, 11vh, 116px); opacity: 0; visibility: hidden; transform: translateX(4%); transition: opacity .65s ease, visibility .65s ease, transform .78s cubic-bezier(.2,.8,.2,1); }
+    .slide.active { opacity: 1; visibility: visible; transform: none; }
+    .slide.before { transform: translateX(-4%); }
+    .lyrics-card { width: min(720px, 56vw); padding: clamp(22px, 3vw, 34px) clamp(25px, 3.3vw, 42px); border: 0; border-radius: 20px; background: transparent; box-shadow: none; }
+    .song-name { margin-bottom: 9px; color: rgba(255,244,218,.58); font-family: "Microsoft YaHei", sans-serif; font-size: clamp(10px, .9vw, 13px); letter-spacing: .13em; }
+    h2 { margin: 0 0 16px; color: #f1d49a; font-family: "Microsoft YaHei", sans-serif; font-size: clamp(17px, 1.65vw, 24px); font-weight: 500; letter-spacing: .03em; }
+    .lyrics { display: grid; gap: clamp(8px, 1.25vh, 14px); font-size: var(--lyrics-size, clamp(23px, 2.55vw, 37px)); line-height: 1.48; text-shadow: 0 8px 24px rgba(0,0,0,.62); }
+    .lyrics p { margin: 0; white-space: nowrap; opacity: 0; transform: translateY(12px); transition: opacity .55s ease calc(var(--i) * 90ms + 120ms), transform .55s ease calc(var(--i) * 90ms + 120ms); }
+    .active .lyrics p { opacity: 1; transform: none; }
+    @keyframes landscapeZoomIn { from { transform: scale(1.01); } to { transform: scale(1.075); } }
+    @keyframes landscapeZoomOut { from { transform: scale(1.08); } to { transform: scale(1.015); } }
+    @keyframes portraitBreath { from { transform: scale(.985); } to { transform: scale(1.025); } }
+    @media (max-width: 800px) {
+      .slide { padding: 38px 22px 64px; }
+      .lyrics-card { width: min(92vw, 680px); padding: 20px 22px; }
+      .lyrics { font-size: var(--lyrics-size, clamp(19px, 4.7vw, 29px)); }
+      .photo-layer.portrait .main-photo { right: 4vw; width: 70vw; opacity: .62; }
+      .shade { background: rgba(3,6,9,.62); }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <div class="photo-layer active" data-layer="0"><div class="blur-bg"><img alt=""></div><div class="main-photo"><img alt="教会生活照片"></div><div class="shade"></div></div>
+    <div class="photo-layer" data-layer="1"><div class="blur-bg"><img alt=""></div><div class="main-photo"><img alt="教会生活照片"></div><div class="shade"></div></div>
+    <section class="slides" aria-live="polite">
+      <article class="slide active">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>被爱与拣选</h2><div class="lyrics"><p style="--i:0">你是为了接受主爱被拣选的人</p><p style="--i:1">在你的生命中接受那丰盛的慈爱</p><p style="--i:2">你是为了接受主爱被拣选的人</p><p style="--i:3">在你的生命中接受那丰盛的慈爱</p></div></div>
+      </article>
+      <article class="slide">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>相遇 · 结出果子</h2><div class="lyrics"><p style="--i:0">创世之前开始的神那丰盛的慈爱</p><p style="--i:1">藉着我们的相遇结出了果子</p><p style="--i:2">在这世界上因着你宝贵的存在</p><p style="--i:3">真是带给我们极大无比的喜乐</p></div></div>
+      </article>
+      <article class="slide">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>现在仍然接受主爱</h2><div class="lyrics"><p style="--i:0">你是为了接受主爱被拣选的人</p><p style="--i:1">现在仍然接受那丰盛的慈爱</p><p style="--i:2">你是为了接受主爱被拣选的人</p><p style="--i:3">现在仍然接受那丰盛的慈爱</p></div></div>
+      </article>
+      <article class="slide">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>在你眼里 · 我何等宝贵</h2><div class="lyrics"><p style="--i:0">我感谢你，因我从来不曾知道</p><p style="--i:1">在你的眼里我是何等的宝贵</p><p style="--i:2">从太初直到如今创造宇宙万物的主</p><p style="--i:3">是何等深切爱我的灵魂</p></div></div>
+      </article>
+      <article class="slide">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>主安排你在我生命里</h2><div class="lyrics"><p style="--i:0">也感谢你，你让我感受到这伟大的爱</p><p style="--i:1">主已安排你在我生命里</p><p style="--i:2">因主耶稣基督的爱更多来服侍你</p><p style="--i:3">我也愿向世界传扬神的爱</p></div></div>
+      </article>
+      <article class="slide">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>栽种在主奇妙计划里</h2><div class="lyrics"><p style="--i:0">你是为了接受主爱</p><p style="--i:1">来到这世上传扬这爱</p><p style="--i:2">在主奇妙计划里把你栽种在这地</p><p style="--i:3">期待你结出美丽的果子</p></div></div>
+      </article>
+      <article class="slide">
+        <div class="lyrics-card"><div class="song-name">欢迎诗歌 · 你是为了接受主爱被拣选的人</div><h2>现在仍然接受丰盛慈爱</h2><div class="lyrics"><p style="--i:0">你是为了接受主爱被拣选的人</p><p style="--i:1">现在仍然接受那丰盛的慈爱</p><p style="--i:2">你是为了接受主爱被拣选的人</p><p style="--i:3">现在仍然接受那丰盛的慈爱</p><p style="--i:4">现在仍然接受那丰盛的慈爱</p></div></div>
+      </article>
+    </section>
+  </main>
+  <script>
+    const photos = [
+      "微信图片_20260627233801_60_27.jpg", "微信图片_20260627233759_57_27.jpg",
+      "微信图片_20260627233804_62_27.jpg", "微信图片_20260627233800_58_27.jpg",
+      "微信图片_20260627233808_65_27.jpg", "微信图片_20260627233801_59_27.jpg",
+      "微信图片_20260627233809_66_27.jpg", "微信图片_20260627233802_61_27.jpg",
+      "微信图片_20260627233811_67_27.jpg", "微信图片_20260627233805_63_27.jpg",
+      "微信图片_20260627233812_68_27.jpg", "微信图片_20260627233806_64_27.jpg",
+      "微信图片_20260627233815_69_27.jpg", "微信图片_20260627233816_70_27.jpg",
+      "微信图片_20260627233817_71_27.jpg", "微信图片_20260627233820_73_27.jpg",
+      "微信图片_20260627233821_74_27.jpg", "微信图片_20260627233824_77_27.png",
+      "微信图片_20260627233822_75_27.jpg", "微信图片_20260627233825_78_27.jpg",
+      "微信图片_20260627233823_76_27.png", "微信图片_20260628001011_80_27.jpg",
+      "微信图片_20260627233826_79_27.jpg", "微信图片_20260628001103_81_27.jpg",
+      "微信图片_20260628001123_82_27.jpg", "微信图片_20260628001142_83_27.jpg",
+      "微信图片_20260628001249_84_27.jpg", "微信图片_20260628001331_85_27.jpg",
+      "微信图片_20260628001417_86_27.jpg"
+    ].map((name) => `../photo/${name}`);
+    const layers = Array.from(document.querySelectorAll(".photo-layer"));
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    let photoIndex = 0;
+    let activeLayer = 0;
+    let activeSlide = 0;
+
+    function applyPhoto(index, immediate) {
+      const targetLayer = immediate ? layers[activeLayer] : layers[activeLayer === 0 ? 1 : 0];
+      const oldLayer = layers[activeLayer];
+      const loader = new Image();
+      loader.onload = () => {
+        const portrait = loader.naturalHeight > loader.naturalWidth;
+        targetLayer.classList.toggle("portrait", portrait);
+        targetLayer.classList.toggle("landscape", !portrait);
+        targetLayer.dataset.photoIndex = String(index);
+        const images = targetLayer.querySelectorAll("img");
+        images.forEach((image) => { image.src = photos[index]; });
+        const mainImage = targetLayer.querySelector(".main-photo img");
+        mainImage.classList.remove("zoom-in", "zoom-out");
+        if (!portrait) mainImage.classList.add(index % 2 ? "zoom-out" : "zoom-in");
+        if (immediate) {
+          targetLayer.classList.add("active");
+        } else {
+          requestAnimationFrame(() => targetLayer.classList.add("active"));
+          oldLayer.classList.remove("active");
+          activeLayer = activeLayer === 0 ? 1 : 0;
+        }
+        const next = new Image();
+        next.src = photos[(index + 1) % photos.length];
+      };
+      loader.onerror = () => rotatePhoto();
+      loader.src = photos[index];
+    }
+
+    function rotatePhoto() {
+      photoIndex = (photoIndex + 1) % photos.length;
+      applyPhoto(photoIndex, false);
+    }
+
+    function fitLyrics() {
+      const lyrics = slides[activeSlide].querySelector(".lyrics");
+      lyrics.style.removeProperty("--lyrics-size");
+      const lines = Array.from(lyrics.querySelectorAll("p"));
+      const available = lyrics.clientWidth - 2;
+      const base = parseFloat(getComputedStyle(lyrics).fontSize);
+      const widest = Math.max(...lines.map((line) => line.scrollWidth));
+      if (widest > available) lyrics.style.setProperty("--lyrics-size", `${Math.max(17, base * available / widest * .98)}px`);
+    }
+
+    function announce(type) {
+      window.parent.postMessage({ type: `worship:${type}`, title: document.title, sectionLabel: "欢迎诗歌", current: activeSlide, count: slides.length }, "*");
+    }
+
+    function goTo(index) {
+      activeSlide = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, slideIndex) => {
+        slide.classList.toggle("active", slideIndex === activeSlide);
+        slide.classList.toggle("before", slideIndex < activeSlide);
+      });
+      requestAnimationFrame(fitLyrics);
+      announce("state");
+    }
+
+    function step(delta) {
+      const target = activeSlide + delta;
+      if (target < 0 || target >= slides.length) {
+        window.parent.postMessage({ type: "worship:boundary", direction: delta > 0 ? 1 : -1, title: document.title }, "*");
+        return;
+      }
+      goTo(target);
+    }
+
+    window.addEventListener("message", (event) => {
+      const data = event.data || {};
+      if (data.type === "worship:navigate") step(Number(data.delta) || 0);
+      if (data.type === "worship:go") goTo(data.position === "last" ? slides.length - 1 : Number(data.index) || 0);
+      if (data.type === "worship:ping") announce("ready");
+    });
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "PageDown", " "].includes(event.key)) step(1);
+      if (["ArrowLeft", "PageUp"].includes(event.key)) step(-1);
+    });
+    document.addEventListener("click", (event) => step(event.clientX > innerWidth / 2 ? 1 : -1));
+    window.addEventListener("resize", fitLyrics);
+    applyPhoto(0, true);
+    window.setInterval(rotatePhoto, 10000);
+    requestAnimationFrame(fitLyrics);
+    announce("ready");
+  </script>
+</body>
+</html>
